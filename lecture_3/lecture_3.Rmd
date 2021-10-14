@@ -1,0 +1,186 @@
+---
+title: "Lecture 3: Hypothesis Testing"
+author: "Dr Nicolaas Puts and Dr Lucas França"
+date: "14 October 2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background:
+
+The dataset consists of a sample of $n = 500$ researchers in the UK whose demographic characteristics and working details are being studied. In this dataset you may find the following variables:
+
+-   age: exact age of the researchers (years)
+-   sex: registered sex at birth (1: male, 2: female)
+-   edu: highest degree the researchers hold (1: Bachelors, 2: Masters', 3: PhD)
+-   work: exact time spent at work on a typical day (hours)
+-   meetings: exact time spent on meetings on a typical day (hours)
+-   satisfaction: satisfaction with the work life balance (1: not at all satisfied, to 7: absolutely satisfied).
+
+## Installing necessary packages
+
+```{r}
+# Just run these commands once!
+install.packages('foreign')
+install.packages('tidyverse')
+```
+## Loading packages
+
+```{r}
+library(foreign)
+library(tidyverse)
+```
+
+## Import dataset
+
+```{r}
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/researchers_sample.SAV?raw=true'
+data = read.spss(url, to.data.frame=TRUE)
+data = as_tibble(data)
+data
+```
+
+# Plots
+
+```{r}
+ggplot(data, aes(x = age)) + 
+  geom_histogram()
+```
+```{r}
+ggplot(data, aes(x = work)) + 
+  geom_histogram()
+```
+
+```{r}
+ggplot(data, aes(x = age, y = work)) +
+  geom_point()
+```
+
+## SPSS Practical Tasks
+
+## Task 1
+
+First, identify the type of each variable in the dataset.
+
+-   age is a 'continuous numerical' variable
+-   sex is a 'binary categorical' variable
+-   edu is an 'ordinal categorical (3 points)' variable
+-   work is a 'continuous numerical' variable
+-   meetings is a 'continuous numerical' variable
+-   satisfaction is a 'categorical ordinal (7 points)' variable
+
+## Task 2
+
+Use the appropriate descriptive indices to identify potential typos and if so, clean the dataset. Use the space below to keep a record of the typos you found.
+
+```{r}
+# Summarise data to find typos
+summary(data)
+```
+
+```{r}
+# Remove typos
+data$age[data$id==4] <- NA
+data$work[data$id==54] <- NA
+data$satisfaction[data$id==72] <- NA
+```
+
+## Task 3
+
+Fill in the blanks to appropriately describe the data (clean dataset).
+
+```{r}
+# Summarise data to find typos
+summary(data)
+```
+
+```{r}
+# Standard deviation work
+sd(data$work, na.rm = TRUE)
+```
+
+```{r}
+# Standard deviation meetings
+sd(data$meetings, na.rm = TRUE)
+```
+
+In the sample, there were 201 (40.2%) women and 299 (59.8%) men. Their age varied between 34.12 and 62.05 years old, with 50 % of the researchers being younger than 55.94 years old. In our sample, the clear majority (75.2 %) of the researchers held a PhD degree. On a typical day, the researchers in our sample reported that they worked between 5.76 and 7.47 hours (mean hours of work = 7.47 , SD = 0.51 ). The time spent in meetings per day is on average 2.90 hours (SD = 0.10 ). With respect to the work-life balance, the median satisfaction in our sample was 5 (min = 1 , max = 7).
+
+## Task 4
+
+In all universities, the academic staff is expected to work on average 7 hours per day. Does our sample support this null hypothesis?
+
+Print the test value for the population mean and the sample mean: $\mu_0$ = 7.00 and $\bar{X}$ = 7.47.\
+Compute the standard error se = $\frac{sd}{\sqrt{n}}$ = 0.51/22.36 = 0.0228.
+
+```{r}
+se = sd(data$work, na.rm = TRUE)/sqrt(length(data$work))
+se
+```
+
+Compute the 95% CI under the null hypothesis.
+
+```{r}
+7.00 - 1.96*se
+```
+
+```{r}
+7.00 + 1.96*se
+```
+
+95% CI: \[6.955 ,7.045\]
+
+Do we reject the null hypothesis?
+
+Our sampled value is 7.5 and it is not included in the 95% CI, therefore we reject the null hypothesis in favour of the alternative hypothesis.
+
+## Task 5
+
+Use the appropriate command to test if the average hours that researchers spend at work is 7 hours. Write the null and the alternative hypotheses and report on the results.
+
+```{r eval=FALSE, include=FALSE}
+t.test(x, 
+       mu = 0)
+```
+
+$H_0$: the mean hours of work in our sample equals 7. \
+$H_\alpha$: the mean hours of work in our sample is different to 7.
+
+```{r}
+t.test(data$work, 
+       mu = 7.00)
+```
+
+In our sample, the mean hours of work was 7.47. This was statistically different to 7 hours (95% CI: \[0.425, 0.515\]; t=20.652, df=498, p\<0.001). Therefore, we reject the null hypothesis and infer that, on average, researchers work more than 7 hours per day.
+
+##Task 6
+
+Use the appropriate command to test if the average hours that researchers spend at meetings is 2 hours. Write the null and the alternative hypotheses and report on the results.
+
+$H_0$: the mean hours of meetings in our sample equals 2. $H_\alpha$: the mean hours of meetings in our sample is different to 2.
+
+```{r}
+t.test(data$meetings, 
+       mu = 2.00)
+```
+
+In our sample, the average hours of meetings was 2.90. This was significantly different to 2 hours (mean difference=0.901, 95% CI=\[0.892, 0.910\]; t=196.684, df=499, p\<0.001). Therefore, we reject the null hypothesis and infer that, on average, researchers are in meetings for more than 2 hours per day.
+
+## Task 7
+
+Use the appropriate command to test if the proportion of female researchers is equal to that of males. Write the null and the alternative hypotheses and report on the results.
+
+$H_0$: the proportion of females in our sample equals 0.5 (50%). \
+$H_\alpha$: the proportion of females in our sample is different to 0.5 (50%).
+
+```{r}
+chisq.test(table(data$sex))
+```
+
+In our sample, the proportion of females was 40.2%. This was significantly different to 50% ($\chi^2$ = 19.208, df = 1, $p$ < 0.001). Therefore, we reject the null hypothesis and infer that the proportion of female researchers is smaller than the proportion of male researchers.
