@@ -1,7 +1,7 @@
 ---
 title: "Lecture 4: Comparing Two Groups I"
 author: "Dr Nicolaas Puts and Dr Lucas França"
-date: "20 October 2021"
+date: "21 October 2021"
 output:
   pdf_document: default
   html_document:
