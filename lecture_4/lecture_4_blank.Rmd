@@ -1,0 +1,195 @@
+---
+title: "Lecture 4: Comparing Two Groups I"
+author: "Dr Nicolaas Puts and Dr Lucas França"
+date: "21 October 2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About functions
+
+Before looking into this week's practical data we should discuss a very important concept for our future analyses - the function. A function is mathematical element that receives an numerical input and return a different one, e.g., $f(x) = x + 1 \rightarrow f(1) = 2$.
+
+In R functions are a somewhat more generic concept that receives not only numbers but also a plethora of different elements, such as vector, matrices, and tibbles (dataframes). They also do not necessarily return an output. An example is the *is.na()* function that checks whether an entry is a 'not-a-number'.
+
+```{r}
+is.na(NA)
+```
+```{r}
+is.na('Test')
+```
+```{r}
+is.na(1)
+```
+R has several built-in functions and such capabilities can be expanded by downloading packages - or else we can create our own function! A function in R has the following structure:
+
+```{r}
+function_name <- function(input){
+  
+  # Some operation
+  
+}
+```
+
+And for our initial function example, one could write it as follows:
+
+```{r}
+xplus1 <- function(x){
+  
+  xp <- x + 1
+  
+  return(xp)
+  
+}
+```
+
+```{r}
+xplus1(1)
+```
+Now we shall see how we can use functions in the context of our work.
+
+# Background:
+
+The data set consists of a sample of n = 500 school children. A research team was interested in measuring the average height of children leaving in an urban area and children leaving in a rural area. In the dataset you will find the following variables:
+
+-   ethnicity: children's ethnicity (1: White, 2: Black, 3: Asian, 4: Other)
+-   area: classification of the area the children live in (1: Rural and 0: Urban)
+-   Height2014: children's height as measured in 2014.
+-   Height2018: children's height as measured in 2018.
+-   nutrition2014: a classification of the quality of children's nutrition by the research team (based on appropriate parameters, interviews and observation) made in 2014 (1: bad, 2: average, 3: good).
+-   nutrition2018: a classification of the quality of children's nutrition by the research team (based on appropriate parameters, interviews and observation) made in 2018 (1: bad, 2: average, 3: good).
+
+## Loading Packages
+
+```{r}
+library(foreign)
+library(tidyverse)
+library(car) # Remember to install the package 'car' if you do not have it yet!
+library(gmodels) # Also install the package 'gmodels' if you do not have it!
+```
+
+## Loading data
+
+```{r}
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/children_nutrition.SAV?raw=true'
+```
+
+# Task 1
+
+First, identify the type of each variable in the dataset.
+
+ethnicity is a categorical nominal variable area is a categorical nominal (binary) variable height2014 is a numerical continuous variable height2018 is a numerical continuous variable nutrition2014 is a categorical ordinal variable nutrition2018 is a categorical ordinal variable
+
+# Task 2
+
+Fill in the blanks to appropriately describe the data.
+
+```{r}
+```
+
+In the sample, there are 225 (45.0%) white students, 129 (25.8%) black students, 103 (20.6%) Asian students, and 43 (8.6%) students of other ethnicities. With respect to area, 236 (47.2%) live in urban areas and 264 (52.8%) students live in rural areas.
+
+Regarding the students' height in 2014, the scores were normally distributed with mean height = 146.0 cm (SD = 2.2). Regarding the students' height in 2018, the distribution was positively skewed, with median = 171.8 cm (min= 155.1 , max= 194.6).
+
+With respect to the quality of the children's nutrition, 105 (21.0%) were considered as having poor quality nutrition in 2014 and 158 ( 31.6 %) in 2018.
+
+# Task 3
+
+The researcher hypothesised that the students' height in 2014 was 150 cm. Use the appropriate commands to test the researcher's hypothesis. Write the null and the alternative hypotheses and report on the results.
+
+$H_0$: the mean height in 2014 equals 150cm $H_\alpha$: the mean height in 2014 is different to 150cm
+
+```{r}
+```
+
+The mean height of the students in 2014 was 146.0 cm. This was significantly lower than 150cm (t=-40.402, df=499, p\<0.001; 95% CI: \[145.7773 146.1689\]). Therefore, we reject the null hypothesis and infer that the students in 2014 were shorter than 150cm.
+
+> :warning: Please note that R and SPSS show CI in a different way.
+
+Task 4
+
+Use the appropriate test to see if there is a statistically significant difference in height between rural and urban areas in 2014. Write the null and the alternative hypotheses and report on the results.
+
+First, we need to check the distribution of the variable Height2014 in each area group (rural and urban) separately by creating a histogram for 'Height2014'.
+
+```{r}
+```
+
+The histograms are (more or less) normally distributed. Therefore, we should use an independent samples t-test.
+
+$H_0$: mean height 2014 in urban areas $=$ mean height 2014 in rural areas
+
+$H_\alpha$: mean height 2014 in urban areas $\neq$ mean height 2014 in rural areas
+
+```{r}
+
+```
+
+The Levene's test outcome suggests that there IS NOT statistically significant difference between the variances of both distributions. Hence we can perform an independent samples t-test considering that aspect.
+
+```{r}
+
+```
+
+To do the independent samples t-test:
+
+The mean height in 2014 was 144.8cm in urban areas and 147.0cm in rural areas. This difference was significant (t=-13.058, df=498, p\<0.001; 95% CI: \[-2.59, -1.91\]; equal variances assumed). Therefore, we infer that, in 2014, the children who lived in rural areas were on average taller that those who lived in urban areas.
+
+# Task 5
+
+Use the appropriate test to see if there is a statistically significant difference in the average height between rural and urban areas in 2018. Write the null and the alternative hypotheses and report on the results.
+
+Once again, we need to check the distribution of the variable Height2018 in each area group (rural and urban) separately by creating a histogram for 'Height2018'.
+
+```{r}
+```
+
+As we can see, the histograms are (more or less) normally distributed, so we should again use the independent samples t-test.
+
+$H_0$: mean height 2014 in urban areas $=$ mean height 2014 in rural areas
+
+$H_\alpha$: mean height 2014 in urban areas $\neq$ mean height 2014 in rural areas
+
+```{r}
+```
+
+The Levene's test outcome suggests that there IS a statistically significant difference between the variances of both distributions. Hence we must perform our independent samples t-test considering that difference.
+
+```{r}
+```
+
+The average height in 2018 was 170.0cm in urban areas and 176.9cm in rural areas. This difference was significant (t=-18.073, df=325.67, p\<0.001; 95% CI: \[-7.61, -6.12,\]; equal variances not assumed). Therefore, in 2018, the children who lived in rural areas were on average taller that those who lived in urban areas.
+
+# Task 6
+
+Use the appropriate test to see if there are statistically significant differences between the percentages of each ethnicity per area.
+
+```{r}
+```
+
+```{r}
+```
+
+There was no association between the ethnicity and area (Pearson's chi-square = 1.400, df = 3, p = 0.706).
+
+Task 7
+
+Use the appropriate test to see if there are statistically significant differences in quality of nutrition between 2014 and 2018.
+
+The variables are categorical paired groups, so the appropriate test is the McNemar test.
+
+```{r}
+```
+
+```{r}
+```
+
+The percentage of those who were characterised as having good nutrition in 2018 (20.4%) is lower than the corresponding in 2014 (29.2%). This difference was statistically significant according to the McNemar test (p\<0.001). Therefore, we conclude that the quality of nutrition decreased from 2014 to 2018.

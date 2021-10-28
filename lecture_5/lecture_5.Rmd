@@ -1,0 +1,259 @@
+---
+title: "Lecture 5: Comparing Two Groups II"
+author: "Dr Nicolaas Puts and Dr Lucas França"
+date: "20 October 2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background:
+
+The data set consists of a sample of n = 154 students attending three postgraduate programmes (affective disorders AF, clinical neuropsychiatry CN, and mental health studies MH), at the IoPPN in 2017. In this dataset you will find the following variables: 
+
+-	programme:  the programme the students were attending (1: AF, 2:CN, 3:MH)
+-	group: the teaching group (1: AF and CN, 2: MH)
+-	anx: the scores on the ‘anxiety related to statistics’ scale, which the students completed during the first week of Term 1. 
+-	catgrade: the ability category (with respect to statistics) at which each student belonged at the beginning of the term, based on the Prior Knowledge Quiz  
+ (1: Low, 2: Sufficient, 3: Good, 4: High).
+-	quiz1: the grades on the practical quiz 1, which the students completed on KEATS 
+-	quiz2: the grades on the practical quiz 2, which the students completed on KEATS 
+
+
+## Loading Packages
+
+```{r}
+library(foreign)
+library(tidyverse)
+library(car) # Remember to install the package 'car' if you do not have it yet!
+library(gmodels) # Also install the package 'gmodels' if you do not have it!
+library(psych)
+```
+
+## Loading data
+
+```{r}
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/postgraduate_dataset.SAV?raw=true'
+dataset <- read.spss(file = url, to.data.frame = TRUE)
+dataset <- as_tibble(dataset)
+dataset
+```
+
+# About ggplot2
+
+This is a series of code snippets and figures showing the evolution of a simple histogram in ggplot to a publication-ready image.
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram()
+```
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group))
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 alpha = 0.4, 
+                 position="identity")
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 alpha = 0.4, 
+                 position="identity") + 
+  scale_fill_manual(values = c('red', 'blue'))
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 alpha = 0.4, 
+                 position="identity") + 
+  scale_fill_manual(values = c('red', 'blue')) + 
+  theme_bw()
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 alpha = 0.4, 
+                 position="identity") + 
+  scale_fill_manual(values = c('red', 'blue')) + 
+  theme_bw() + 
+  xlab('Quiz 1 score') + 
+  ylab('Frequency')
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 alpha = 0.4, 
+                 position="identity") + 
+  scale_fill_manual(values = c('red', 'blue'), 
+                    name = 'Group') + 
+  theme_bw() + 
+  xlab('Quiz 1 score') + 
+  ylab('Frequency')
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quiz1)) + 
+  geom_histogram(aes(fill = group), 
+                 position="identity") + 
+  scale_fill_manual(values = c('red', 'blue'), 
+                    name = 'Group') + 
+  theme_bw() + 
+  xlab('Quiz 1 score') + 
+  ylab('Frequency') + 
+  facet_wrap(~group)
+```
+
+# Task 1
+
+First, identify the type of each variable in the dataset.
+
+programme is	a categorical nominal 	variable
+group is	a categorical nominal (binary) 	variable
+anx is	a numerical continuous 	variable
+catgrade is	a categorical ordinal (4 points)	variable
+quiz1 is	a numerical continuous 	variable
+quiz2 is	a numerical continuous	variable
+
+
+# Task 2
+
+Fill in the blanks to appropriately describe the data.
+
+```{r}
+summary(dataset)
+describe.by(dataset, group = dataset$group)
+```
+
+
+In the sample, there are 19 (12.3 %) students from the affective disorders programme, 28 (18.2 %) students from the clinical neuropsychiatry, and 107 (69.5 %) students from the mental health programme. With respect to their prior knowledge in statistics, 13 (8.4 %) students started their training with low prior knowledge, 56 (36.4 %) students started with sufficient prior knowledge, 53 (34.4 %) students started with good prior knowledge, 15 (9.7 %) students started with high prior knowledge, and 17 (11.0 %) students did not take the test. 
+
+Regarding the ‘anxiety related to statistics’ scale, the students’ scores were normally distributed with mean anxiety = 35.2 (sd = 16.4, min = 0, max = 70).  The scores for both Progress Quizzes were negatively skewed, with most students scoring towards the upper end of the distribution. Specifically, the median for first Quiz  was  75.0 (min = 15.9 - max = 95.5) and the median for second Quiz  was  82.5 (min = 12.5 - max = 100.0).
+
+
+# Task 3
+
+Based on the summary, for which of the variables you would use parametric and for which non-parametric tests?  
+
+parametric tests:  anxiety scores
+non-parametric tests:  quiz 1 and quiz 2 scores
+
+# Task 4
+
+Use the appropriate test to see if there are statistically significant differences between the two teaching groups (AD&CN and MH) in the percentages of students belonging to each of the ‘prior knowledge’ categories (low, sufficient, good, high). Report on the results.
+
+
+```{r}
+# First we look at the crosstables using the CrossTable() function from package 'gmodels'.
+
+CrossTable(dataset$catgrade, dataset$group, 
+           format=c("SPSS"), 
+           prop.r = FALSE, 
+           prop.t = FALSE, 
+           prop.chisq=FALSE)
+```
+
+```{r}
+fisher.test(dataset$catgrade,dataset$group)
+```
+
+```{r}
+chisq.test(xtabs(formula = ~ catgrade + group, data = dataset))
+```
+
+For two independent groups, the appropriate test is Pearson’s chi square, provided the assumptions of the test hold. However, the assumptions did not hold, so we report instead on the Fisher’s exact test. 
+
+The was no association between the group membership and the level of prior knowledge in statistics (Fisher’s exact test p=0.393).
+
+
+# Task 5
+
+Use the appropriate test to see if there are statistically significant differences between the student’s results on Progress Quiz 1 and Progress Quiz 2. Was there any improvement?
+
+First, create a variable of the difference between the two quizzes.
+
+```{r}
+dataset <- mutate(dataset, quizdiff = quiz2 - quiz1)
+```
+
+```{r}
+ggplot(data = dataset, 
+       aes(x = quizdiff)) + 
+  geom_histogram(aes(y = ..density..), 
+                 binwidth = 5) + 
+  stat_function(fun = dnorm, 
+                colour = "red", 
+                args = list(mean = mean(dataset$quizdiff, 
+                                        na.rm = TRUE), 
+                          sd = sd(dataset$quizdiff, 
+                                  na.rm = TRUE))) + 
+  theme_bw()
+```
+
+```{r}
+wx_test <- wilcox.test(dataset$quiz1, 
+                       dataset$quiz2, 
+                       paired = TRUE)
+wx_test
+```
+
+Differently from SPSS, R does not provide the Standardised Test Statistic. This needs to be computed separately as follows:
+
+```{r}
+Zstat <- qnorm(wx_test$p.value/2)
+Zstat
+```
+The students scored higher in Quiz 2 than Quiz 1 (Quiz 1 median =  75.0; Quiz 2 median = 82.5). This was a significant difference, according to the Wilcoxon signed rank test (Z = 4.972, p < 0.001). 
+
+# Task 6
+
+Use the appropriate test to see there were statistically significant differences between the two teaching groups with respect to their performance in the progress quizzes.
+
+First, create histograms for both quizzes, split by group.
+
+```{r}
+dataset2 <- pivot_longer(dataset, cols = c('quiz1','quiz2'))
+```
+
+
+```{r}
+ggplot(data = dataset2, aes(x = value)) + 
+  geom_histogram(aes(fill = name)) + 
+  theme_bw() + 
+  facet_wrap(group ~ name) + 
+  scale_fill_viridis_d(option = 'B')
+```
+
+The distributions are skewed, so we must use the Mann-Whitney U test (as opposed to the independent samples t test).
+
+```{r}
+wilcox.test(dataset$quiz1~dataset$group)
+```
+
+```{r}
+wilcox.test(dataset$quiz2~dataset$group)
+```
+
+There were no statistically significant differences in progress quiz scores between the two groups, according to the Mann-Whitney U test (Quiz 1: U = 2515.5, p = 0.685; Quiz 2: U = 1504, p = 0.991).
