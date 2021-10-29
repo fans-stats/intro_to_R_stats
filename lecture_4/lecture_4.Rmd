@@ -1,11 +1,11 @@
 ---
 title: "Lecture 4: Comparing Two Groups I"
 author: "Dr Nicolaas Puts and Dr Lucas França"
-date: "21 October 2021"
+date: "20 October 2021"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 editor_options: 
   chunk_output_type: inline
 ---
@@ -31,7 +31,7 @@ is.na(1)
 ```
 R has several built-in functions and such capabilities can be expanded by downloading packages - or else we can create our own function! A function in R has the following structure:
 
-```{r}
+```{r eval=FALSE}
 function_name <- function(input){
   
   # Some operation
@@ -70,6 +70,7 @@ The data set consists of a sample of n = 500 school children. A research team wa
 ## Loading Packages
 
 ```{r}
+#install.packages("gmodels")
 library(foreign)
 library(tidyverse)
 library(car) # Remember to install the package 'car' if you do not have it yet!
@@ -96,7 +97,11 @@ ethnicity is a categorical nominal variable area is a categorical nominal (binar
 Fill in the blanks to appropriately describe the data.
 
 ```{r}
+#install.packages("psych")
+library(psych)
+
 summary(dataset)
+describe.by(dataset, group = dataset$Area)
 ```
 
 In the sample, there are 225 (45.0%) white students, 129 (25.8%) black students, 103 (20.6%) Asian students, and 43 (8.6%) students of other ethnicities. With respect to area, 236 (47.2%) live in urban areas and 264 (52.8%) students live in rural areas.
@@ -141,7 +146,9 @@ $H_\alpha$: mean height 2014 in urban areas $\neq$ mean height 2014 in rural are
 ```{r}
 # We are first going to compute Levene's test
 
-leveneTest(Height2014 ~ Area, data = dataset, center=mean)
+leveneTest(Height2014 ~ Area, data = dataset, center = mean)
+
+leveneTest(Height2014 ~ Area, data = dataset, center = mean)
 
 # Now let's discuss the arguments of the function t.test
 # 'Height2014 ~ Area' indicates how R is going to split the data. Here we are looking at different height measures sampled (Height2014) according to two different areas (Area). We are going to discuss formulas in more detail later - on the linear models lecture.
@@ -155,7 +162,7 @@ The Levene's test outcome suggests that there IS NOT statistically significant d
 ```{r}
 # We are now going to perform an independent samples t-test. There are a few different ways to do this. The simplest is probably as follows:
 
-t.test(formula = Height2014 ~ Area, data = dataset, var.equal = TRUE)
+t.test(formula =Height2014 ~ Area, data = dataset, var.equal = TRUE)
 
 # Now let's discuss the arguments of the function t.test
 # 'formula = Height2014 ~ Area' indicates how R is going to split the data. Here we are looking at different height measures sampled (Height2014) according to two different areas (Area). We are going to discuss formulas in more detail later - on the linear models lecture.
@@ -175,10 +182,31 @@ Use the appropriate test to see if there is a statistically significant differen
 Once again, we need to check the distribution of the variable Height2018 in each area group (rural and urban) separately by creating a histogram for 'Height2018'.
 
 ```{r}
-ggplot(data = dataset, 
+
+#Here I am subsetting based on urban and rural (essentially making a new dataset for each)
+Urban <- subset(dataset, Area=="Urban")
+Rural <- subset(dataset, Area=="Rural")
+
+#Urban
+ggplot(data = Urban, 
        aes(x = Height2018)) + # We just need the arg x for the function aes() and histograms
-    geom_histogram(aes(fill = Area)) + # This line tells ggplot what king of graph we need. Also note that the function geom_histogram() also receive a function aes(). 
-    theme_bw() # Changing the theme for some nicer looks
+    geom_histogram(aes(y = ..density..)) + # This line tells ggplot what king of graph we need. Also note that the function geom_histogram() also receive a function aes(). 
+    theme_bw() + stat_function(fun=dnorm,
+                         color="red",
+                         args=list(mean=mean(Urban$Height2018), 
+                                  sd=sd(Urban$Height2018))) +
+  ggtitle("Urban")
+
+#Urban
+ggplot(data = Rural, 
+       aes(x = Height2018)) + # We just need the arg x for the function aes() and histograms
+    geom_histogram(aes(y = ..density..)) + # This line tells ggplot what king of graph we need. Also note that the function geom_histogram() also receive a function aes(). 
+    theme_bw() + stat_function(fun=dnorm,
+                         color="red",
+                         args=list(mean=mean(Rural$Height2018), 
+                                  sd=sd(Rural$Height2018)))+
+  ggtitle("Rural")
+     
 ```
 
 As we can see, the histograms are (more or less) normally distributed, so we should again use the independent samples t-test.

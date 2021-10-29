@@ -3,9 +3,9 @@ title: "Lecture 5: Comparing Two Groups II"
 author: "Dr Nicolaas Puts and Dr Lucas França"
 date: "28 October 2021"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 editor_options: 
   chunk_output_type: inline
   markdown: 
@@ -51,9 +51,7 @@ library(psych)
 
 ```{r}
 url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/postgraduate_dataset.SAV?raw=true'
-dataset <- read.spss(file = url, to.data.frame = TRUE)
-dataset <- as_tibble(dataset)
-dataset
+
 ```
 
 # Task 1
@@ -70,8 +68,7 @@ numerical continuous variable quiz2 is a numerical continuous variable
 Fill in the blanks to appropriately describe the data.
 
 ```{r}
-summary(dataset)
-describe.by(dataset, group = dataset$group)
+
 ```
 
 In the sample, there are 19 (12.3 %) students from the affective
@@ -109,21 +106,14 @@ categories (low, sufficient, good, high). Report on the results.
 ```{r}
 # First we look at the crosstables using the CrossTable() function from package 'gmodels'.
 
-CrossTable(dataset$catgrade, 
-           dataset$group, 
-           format=c("SPSS"), 
-           prop.r = FALSE, 
-           prop.t = FALSE, 
-           prop.chisq=FALSE)
-
 ```
 
 ```{r}
-chisq.test(xtabs(formula = ~ catgrade + group, data = dataset))
+# This performs Fisher's exact test
 ```
 
 ```{r}
-fisher.test(dataset$catgrade,dataset$group) # This performs Fisher's exact test
+
 ```
 
 For two independent groups, the appropriate test is Pearson's chi
@@ -143,41 +133,26 @@ Progress Quiz 2. Was there any improvement?
 First, create a variable of the difference between the two quizzes.
 
 ```{r}
-dataset <- mutate(dataset, quizdiff = quiz2 - quiz1) # The function mutate is part of the tidyverse set of packages and includes another column to your tibble(dataframe) in a similar fashion to formulas in Excel.
-dataset
+# The function mutate() is part of the tidyverse set of packages and includes another column to your tibble(dataframe) in a similar fashion to formulas in Excel.
 ```
 
 Now let's visualise the distribution:
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quizdiff)) + 
-  geom_histogram(aes(y = ..density..), 
-                 binwidth = 5) + 
-  stat_function(fun = dnorm, 
-                colour = "red", 
-                args = list(mean = mean(dataset$quizdiff, 
-                                        na.rm = TRUE), 
-                          sd = sd(dataset$quizdiff, 
-                                  na.rm = TRUE))) + 
-  theme_bw()
+
 ```
 
 We should then perform the Wilcoxon signed rank test
 
 ```{r}
-wx_test <- wilcox.test(dataset$quiz1, 
-                       dataset$quiz2, 
-                       paired = TRUE)
-wx_test
+
 ```
 
 Differently from SPSS, R does not provide the Standardised Test
 Statistic. This needs to be computed separately as follows:
 
 ```{r}
-Zstat <- qnorm(wx_test$p.value/2)
-Zstat
+
 ```
 
 The students scored higher in Quiz 2 than Quiz 1 (Quiz 1 median = 75.0;
@@ -199,10 +174,7 @@ the diagram below:
 > Source: <https://github.com/rstudio/cheatsheets/blob/master/tidyr.pdf>
 
 ```{r}
-dataset2 <- pivot_longer(dataset, 
-                         cols = c('quiz1','quiz2'), 
-                         names_to = 'Test', 
-                         values_to = 'Scores')
+
 
 # Pivot longer is also included in tidyverse and was developed to convert 'wide' data structures to 'long' tibbles. 
 
@@ -211,22 +183,18 @@ dataset2 <- pivot_longer(dataset,
 ```
 
 ```{r}
-ggplot(data = dataset2, aes(x = Scores)) + # Adding variables
-  geom_histogram(aes(fill = Test)) + # Define histogram geom and fill/colouring option
-  theme_bw() + # A prettier theme
-  facet_wrap(group ~ Test) + # This element splits figure in panels (per group and Test in this case)
-  scale_fill_viridis_d(option = 'D', end = 0.6) # Change colours
+
 ```
 
 The distributions are skewed, so we must use the Mann-Whitney U test (as
 opposed to the independent samples t test).
 
 ```{r}
-wilcox.test(dataset$quiz1~dataset$group)
+
 ```
 
 ```{r}
-wilcox.test(dataset$quiz2~dataset$group)
+
 ```
 
 There were no statistically significant differences in progress quiz
@@ -241,27 +209,19 @@ simple histogram in ggplot to a publication-ready image.
 We start with a very basic histogram:
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram()
+
 ```
 
 And add some colours!
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group))
+
 ```
 
 We can also remove the stacking and add transparency
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group), 
-                 alpha = 0.4, 
-                 position="identity")
+
 
 # The argument position="identity" to geom_histogram() removes the stacking
 # The argument alpha adds transparency ranging from 0 to 1 - with 0 indicating complete transparency and 1 relating to no transparency at all.
@@ -270,12 +230,7 @@ ggplot(data = dataset,
 We can also change the colour palette to better suit our data:
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group), 
-                 alpha = 0.4, 
-                 position="identity") + 
-  scale_fill_manual(values = c('red', 'blue'))
+
 
 # scale_fill_manual(values = c('red', 'blue')) does change the colour palette. There are several colour palette functions - we should discuss them in the following weeks.
 ```
@@ -283,15 +238,7 @@ ggplot(data = dataset,
 It is a good practice to include good labeling for our figures:
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group), 
-                 alpha = 0.4, 
-                 position="identity") + 
-  scale_fill_manual(values = c('red', 'blue')) + 
-  theme_bw() + 
-  xlab('Quiz 1 score') + 
-  ylab('Frequency')
+
 
 # xlab('Quiz 1 score') defines the title of label x
 # ylab('Frequency') defines the title of label y
@@ -300,16 +247,7 @@ ggplot(data = dataset,
 We can also add a title to our legend
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group), 
-                 alpha = 0.4, 
-                 position="identity") + 
-  scale_fill_manual(values = c('red', 'blue'), 
-                    name = 'Group') + 
-  theme_bw() + 
-  xlab('Quiz 1 score') + 
-  ylab('Frequency')
+
 
 # name = 'Group', included in scale_fill_manual() defines the name of the colour legend.
 ```
@@ -318,16 +256,7 @@ Sometimes transparencies do not work very well and panels are a better
 option to split data in groups.
 
 ```{r}
-ggplot(data = dataset, 
-       aes(x = quiz1)) + 
-  geom_histogram(aes(fill = group), 
-                 position="identity") + 
-  scale_fill_manual(values = c('red', 'blue'), 
-                    name = 'Group') + 
-  theme_bw() + 
-  xlab('Quiz 1 score') + 
-  ylab('Frequency') + 
-  facet_wrap(~group)
+
 
 # facet_wrap(~group) splits our histogram in two panels based on the variable group.
 ```
