@@ -1,0 +1,200 @@
+---
+title: "Lecture 6: Correlation and Regression - The linear Model"
+author: "Dr Nicolaas Puts and Dr Lucas França"
+date: "11 November 2021"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options: 
+  chunk_output_type: inline
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background:
+
+The data set consists of a sample of n=75 prisoners whose alcohol use was recorded. The following measures have been recorded:
+
+-	alcohol:  Alcohol Use Disorder Identification Test (AUDIT) score (it takes values from 0 to 18). 
+-	ethnic: Prisoner’s ethnicity (1=white, 2=black, 3=other)
+-	offtype: Offense type (0=non-violent, 1=violent)
+-	age: Age in years 
+-	sex: Gender (0=female, 1=male, 2=other)
+-	sleep: How good the prisoner sleeps at night (1: good sleep, 2: so and so, 3: bad sleep) 
+-	communication: the extent to which the prisoner feels that has good communication with the prison psychologist (1: not at all – to 7: great communication).
+-	Memoryloss: Measure of memory loss. Score taking values from 0 to 40.
+-	Pure alcohol intake: Grams of pure alcohol intake per week in standard UBE units.  
+-	Pure alcohol intake parents: Grams of pure alcohol intake per week in standard UBE units by the subject parents.  
+
+
+## Loading Packages
+
+```{r}
+library(foreign)
+library(tidyverse)
+library(car) # Remember to install the package 'car' if you do not have it yet!
+library(gmodels) # Also install the package 'gmodels' if you do not have it!
+library(psych)
+library(ggpubr)
+```
+
+## Loading data
+
+```{r}
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/alcohol_intake.sav?raw=true'
+```
+
+# Some tidyverse concepts
+
+## A different way to show functions
+
+```{r eval=FALSE, include=TRUE}
+f(g(h())) = f() %>% g() %>% h()
+```
+
+
+## Filtering
+
+```{r}
+```
+
+
+```{r}
+```
+
+# Group_by() + Summarise() and aggregates on dataframes
+
+```{r}
+```
+
+## Mutate() and creating new variables
+
+```{r}
+```
+
+
+# Task 1
+
+What kind of graph is the most appropriate to plot variable ‘Pure alcohol intake’ vs. ‘Pure alcohol intake parents’?
+
+A scatter plot is the most suitable graph to plot two continuous variables.
+
+Is there a linear relationship between ‘Pure alcohol intake’ and ‘Pure alcohol intake parents’? Use the plot from answer A to assess the linear relationship. Add a line of best fit to the plot, if necessary. 
+
+```{r}
+```
+
+
+# Task 2
+
+	What coefficient is the most appropriate to numerically assess the correlation between ‘Pure alcohol intake’ and ‘Pure alcohol intake parents’? 
+
+
+	Based on your answer above, compute and interpret the correlation coefficient for ‘Pure alcohol intake’ and ‘Pure alcohol intake parents’ variables. Can this value be inferred to the whole population?
+	
+
+```{r}
+```
+
+```{r}
+```
+
+The variables are normally distributed. Therefore, the Pearson correlation coefficient is appropriate to measure the linear relationship between them.
+
+Task 3
+
+	Build a simple linear model that can be used to predict the pure alcohol intake in prisoners knowing the pure alcohol intake in their parents. 
+	
+	
+```{r}
+```
+The Pearson correlation coefficient is 0.589. Based on this value, we can conclude there is a moderate positive linear relationship between the alcohol intake of the prisoners and the alcohol intake of the prisoners’ parents. We can infer this value to the whole population, as the p value is lower than 0.05 (p<0.001). This allows us to reject the null hypothesis of no linear correlation between the variables.
+
+# Task 3
+A. Build a simple linear model that can be used to predict the pure alcohol intake in prisoners knowing the pure alcohol intake in their parents.
+
+
+```{r}
+```
+
+
+
+	Please fill the boxes:
+
+		      β_0=150.618	  β_1= 0.522
+
+
+	Write the equation of the regression line.
+
+purealcohol = 150.618 + 0.522 ∗ purealcohol_parents
+
+
+	Interpret both regression coefficients.
+  
+150.618 UBE would be the extrapolated pure alcohol intake for a prisoner
+with parents that usually take no pure alcohol per week.
+1 UBE difference in prisoners’ parents’ alcohol intake is associated with a 0.522 UBE increase in prisoners’ alcohol intake.
+
+
+# Task 4
+
+Use the simple linear regression model derived in Task 3 to answer these questions:
+
+	Can you infer the value of the regression coefficient β_1  to the whole population? Why?
+
+Yes, we can infer the value to the whole population because the p-value for β1 in the statistical test (Task 3A output) is less than 0.05 (p<0.001). Therefore,we can reject the nullhypothesis of𝛽 =0.
+
+	Compute a confidence interval for β_1 and interpret it.
+	
+```{r}
+```
+
+The 95% confidence interval is [0.355, 0.690]. For the 95% of samples extracted from the population of prisoners,the estimated value for𝛽 will
+belong to this interval.
+
+# Task 5
+
+A person is incarcerated. The team in the prison has information about his parents’ pure alcohol intake per week, which is 210 UBE. They would like to know the prisoner’s pure alcohol weekly intake, but he rejects to answer the question. What would you recommend to the team? Can you use statistics to give a numerical estimation of the prisoner’s pure alcohol intake per week?
+
+```{r}
+```
+
+
+
+# Task 6
+
+	What kind of graph is the most appropriate to plot variable ‘alcohol’ vs. ‘memoryloss’?
+	
+	A scatter plot is the most suitable graph to plot two continuous variables.
+
+	Is there a linear relationship between ‘alcohol’ and ‘memoryloss’? 
+Use the plot from answer A to assess the linear relationship. Add a line of best fit to the plot, if necessary.
+
+```{r}
+```
+
+# Task 7
+	
+	What coefficient is the most appropriate to numerically assess the correlation between ‘alcohol’ and ‘memoryloss’? 
+
+To be able to answer, first we need to check if both variables are normally distributed, following the next steps:
+
+```{r}
+```
+
+```{r}
+```
+
+The variables are not normally distributed. Therefore, a Spearman correlation coefficient is more appropriate to measure the linear relationship between them.
+
+Compute and interpret the correlation coefficient for the alcohol and memory loss variables. Can this value be inferred to the whole population?
+
+
+```{r}
+```
+The Spearman correlation coefficient is 0.617. Based on this value, we can conclude there is a strong positive linear relationship between alcohol and memory loss. We can infer this value to the whole population, as the p value is less than 0.05 (p<0.001). This allows us to reject the null hypothesis of no linear correlation between the variables.

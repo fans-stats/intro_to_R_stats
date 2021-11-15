@@ -1,0 +1,90 @@
+---
+title: "Lecture 6: Correlation and Regression - The linear Model (Tasks)"
+author: "Dr Nicolaas Puts and Dr Lucas França"
+date: "11 November 2021"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options: 
+  chunk_output_type: inline
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background:
+
+The data set consists of a sample of n=75 prisoners whose alcohol use was recorded. The following measures have been recorded:
+
+-	alcohol:  Alcohol Use Disorder Identification Test (AUDIT) score (it takes values from 0 to 18). 
+-	ethnic: Prisoner’s ethnicity (1=white, 2=black, 3=other)
+-	offtype: Offense type (0=non-violent, 1=violent)
+-	age: Age in years 
+-	sex: Gender (0=female, 1=male, 2=other)
+-	sleep: How good the prisoner sleeps at night (1: good sleep, 2: so and so, 3: bad sleep) 
+-	communication: the extent to which the prisoner feels that has good communication with the prison psychologist (1: not at all – to 7: great communication).
+-	Memoryloss: Measure of memory loss. Score taking values from 0 to 40.
+-	Pure alcohol intake: Grams of pure alcohol intake per week in standard UBE units.  
+-	Pure alcohol intake parents: Grams of pure alcohol intake per week in standard UBE units by the subject parents.  
+
+
+# Task 1: Loading Packages
+
+Load the relevant packages for the following analysis.
+
+```{r}
+# You should load packages with the command library(NAMEOFTHEPACKAGE)
+library(tidyverse)
+library(foreign)
+```
+
+# Task 2: Loading data
+
+Find the error in the code chunk below:
+
+```{r}
+## Line 53 was missing a comma.
+
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/alcohol_intake.sav?raw=true'
+dataset <- read.spss(file = url, to.data.frame = TRUE)
+dataset <- as_tibble(dataset)
+dataset
+```
+
+# Task 3: Publication ready figure
+
+Plot the relationship between 'purealcohol' and 'purealcohol_parents' colouring according to 'offtype'. Change the colour palette and the theme.
+
+```{r}
+dataset %>% 
+  
+  ggplot(aes(x = purealcohol, 
+             y = purealcohol_parents)) +
+    geom_point(aes(colour = offtype), 
+               size = 3) + 
+    scale_color_manual(values = c('#2166ac', '#b2182b'), 
+                       name = 'Off. type') + 
+    xlab('Pure alcohol intake in UBE (prisoner)') + 
+    ylab('Pure alcohol intake in UBE (parents)') + 
+    ggtitle('Relationship between prisoners and their parents\' alcohol intake (in UBE)') + 
+    theme_bw()
+```
+
+
+# Task 4: Subsetting data
+
+Restrict data to male offenders only and plot a histogram for 'alcohol'.
+
+```{r}
+dataset %>% 
+  filter(sex == 'male') %>% 
+  
+  ggplot(aes(x = alcohol)) + 
+    geom_histogram(binwidth = 1) + 
+    theme_bw()
+```
+
