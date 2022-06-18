@@ -1,11 +1,11 @@
 ---
-title: "Lecture 9: Comparing Two Groups I"
+title: "Lecture 9: Effect Modification (Interactions) and Logistic regression"
 author: "Dr Nicolaas Puts and Dr Lucas França"
 date: "9 December 2021"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 editor_options: 
   chunk_output_type: inline
 ---
@@ -53,6 +53,13 @@ dataset
 Use the appropriate descriptive indices to identify potential typos and if so, clean the dataset. Use the space below to keep a record of the typos you found and then delete them to create a “clean data set”.
 
 ```{r}
+dataset %>% 
+  ggplot(aes(x = metropol)) + 
+    geom_histogram()
+```
+
+
+```{r}
 dataset$metropol[dataset$metropol == -30.70] <- NA
 dataset$murder[dataset$murder == -9] <- NA
 ```
@@ -61,7 +68,7 @@ dataset$murder[dataset$murder == -9] <- NA
 # Task 3
 
 It is hypothesised that urbanicity is a modifier of the effect of poverty on crime. To investigate the effect modification please follow the next steps.
-a) Use the appropriate SPSS command to create a cross-product (poverty_X_urban) term by multiplying poverty with urban.
+a) Use the appropriate R command to create a cross-product (poverty_X_urban) term by multiplying poverty with urban.
 b) Use a multiple linear regression model to assess if urbanicity is an effect modifier of the poverty-crime association.
 
 ```{r}
@@ -100,30 +107,112 @@ a) For the poverty by urban interaction model in Task 3, calculate the standardi
 
 ```{r}
 dataset %>% 
-  dplyr::mutate(dfbetas = dfbetas(lm(formula = crime ~ urban*poverty))[,4]) %>% 
+  dplyr::mutate(dfbetas = dfbetas(
+    lm(formula = crime ~ urban*poverty)
+    )[,4]) %>% 
   dplyr::mutate(dffits = dffits(lm(formula = crime ~ urban*poverty)))
 ```
 
 The data for the states LA and DC have absolute standardised DFFIT and DFBETA measures exceeding 1, indicating that these two states have strong influence on the fitted model. The state DC (District of Yes, the results lead to the conclusion that job-search self-efficacy fully mediates the effect of Columbia) has the highest absolute DFFIT and DFBETA measures suggesting that the data for this state treatment (job training programme) on depression symptoms has the strongest influence. Such data points need to be further scrutinised for validity and may need to be removed from the analysis as they can lead to a distorted estimate of the true population relationship.
 
+
 # Background:
 
-The data file contains crime rate data on 51 US states. Several continuous and categorical variables have been recorded:
-- state – US state
-- crime – violent crime rate (per 100,000 people)
-- murder – murder rate (per 100,000 people)
-- metropol – percent living in cities
-- white – percent white people
-- edu – percent gaining high school education
-- poverty – percent below the poverty line
-- single – percent lone parents
-- urban – a categorised (binary) version of metropol [urban = 1 if metropol >= median (69.8); urban = 0 otherwise)
+The data set consists of a sample of n=1000 sixteen years old children. Several continuous and categorical variables have been recorded:
+- weight – weight in kg at age 16
+- sex – gender of child (0 = male, 1 = female)
+- height – height in cm at age 16
+- class – registrar general's classification of social class (7 categories)
+- malcat – Malaise score (0=no, 1=yes)
+- reading – Reading score
+- scd – CD rating
+- sha – Hyperactivity (HA) rating
 
 ## Loading data
 
 ```{r}
-url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/crime_rates.sav?raw=true'
+url <- 'https://github.com/fans-stats/intro_to_R_stats/blob/main/datasets/child_dev_a.sav?raw=true'
 dataset <- read.spss(file = url, to.data.frame = TRUE)
 dataset <- as_tibble(dataset)
 dataset
 ```
+
+# Task 1:
+
+We want to compare the effects of a child’s gender on the risk of depression at the age of 22 measured as the dichotomised malaise score where 0 = No malaise and 1 = Yes malaise. Calculate your answer to 3 decimal places
+
+```{r}
+# First we look at the crosstables using the CrossTable() function from package 'gmodels'.
+
+CrossTable(dataset$malcat, dataset$sex,
+           format=c("SPSS"),
+           prop.r = FALSE,
+           prop.t = FALSE,
+           prop.chisq=FALSE)
+```
+
+Risk of having malaise in males = 26 ÷ 491 = 0·053
+Risk of having malaise in females = 72 ÷ 509 = 0·141
+We can compare the risk for each of the groups using the risk ratio.
+(Risk when male) ÷ (Risk when female) = 0·053 ÷ 0·14 = 0.376
+Those who were male had 0.37 times the risk of having malaise at 22 compared to those who were female.
+
+We can also present risk as a percentage using the following formula % decrease = (1 - RR) x 100 Males had a 63% reduction in risk of malaise at 22 compared to females.
+
+You could have also calculated this as
+(Risk when female) ÷ (Risk when male) = 0.14 ÷ 0.053 = 2.642
+Those who were female had 2.64 times the risk of having malaise at 22 compared to those who were male.
+
+We can also present risk as a percentage using the following formula % increase = (RR - 1) x 100 Those who were female had a 164% increase in risk of having malaise at 22 compared to males.
+
+# Task 2:
+
+We want to compare the effects of a child’s gender on the odds of depression measured as the dichotomous malaise score where 0 = No malaise and 1 = Yes malaise. Calculate your answer to 3 decimal places (3dp)
+
+Odds of having malaise in males = 26 ÷ 465 = 0·056
+Odds of having malaise in females = 72 ÷ 437 = 0·165
+We can compare the odds for each of the groups using the odds ratio.
+(Odds when male) ÷ (Odds when female) = 0·056 ÷ 0·165 = 0.339
+So the odds of having malaise at 22 when the child is male is about a 1/3 of the odds of females having malaise at 22.
+You could have also calculated this as
+(Odds when female) ÷ (Odds when male) = 0.165 ÷ 0.056 = 2.946
+So the odds of having malaise at 22 when the child is female is about 3 times of the odds of a male child.
+
+# Task 3:
+
+Is there an association between a child’s gender and them suffering malaise at age 22?
+
+```{r}
+#install.packages('fmsb')
+library(fmsb)
+
+dataset %>% 
+  glm(formula = malcat ~ sex, family = binomial(link='logit')) %>% 
+  summary()
+
+dataset %>% 
+  glm(formula = malcat ~ sex,family = binomial(link='logit')) %>% 
+  fmsb::NagelkerkeR2()
+```
+H0: there is no association between gender and malaise at age 22
+H1: there is an association between gender and malaise at age 22
+
+There was a significant improvement to the constant only model. Nagelkerke $R^2$ = 4.8% of the variation in malaise can be explained by the model including gender.
+
+
+# Task 4
+
+```{r}
+dataset %>% 
+  dplyr::mutate(class = as.factor(class)) %>% 
+  glm(formula = malcat ~ sex + reading + scd + sha + class, 
+      family = binomial(link='logit')) %>% 
+  summary()
+
+dataset %>% 
+  dplyr::mutate(class = as.factor(class)) %>% 
+  glm(formula = malcat ~ sex + reading + scd + sha + class, 
+      family = binomial(link='logit')) %>% 
+  NagelkerkeR2()
+```
+There was a significant improvement to the constant only model. Nagelkerke R^2 = 10.5% of the variation in malaise can be explained by the model including gender, reading score, scd, sha and class.
